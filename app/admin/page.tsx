@@ -19,9 +19,8 @@ export default function AdminLogin() {
       await signInWithEmailAndPassword(auth, email, password);
       // If successful, send them to the dashboard
       router.push("/admin/dashboard");
-    } catch (err: any) {
-      console.error("Firebase Auth Error:", err);
-      setError(err.message || "Access Denied.");
+    } catch (err) {
+      setError("Invalid email or password. Access Denied.");
     }
   };
 
