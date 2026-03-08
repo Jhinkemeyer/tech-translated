@@ -1,4 +1,4 @@
-import Image from "next/image"; // <-- We import the Next.js optimized Image component
+import Image from "next/image";
 
 export default function Bio() {
   return (
@@ -14,14 +14,14 @@ export default function Bio() {
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-        {/* Your Actual Headshot! */}
+        {/* Your Headshot */}
         <div className="relative aspect-square rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 shadow-xl">
           <Image
-            src="/headshot.png" // <-- Make sure this matches your exact filename (e.g., .png or .jpg)
+            src="/headshot.png" /* Remember to keep this .png or .jpg depending on your file! */
             alt="Joshua"
             fill
             className="object-cover"
-            priority // Tells Next.js to load this image instantly
+            priority
           />
         </div>
 
@@ -32,26 +32,30 @@ export default function Bio() {
             <span className="text-zinc-50 font-semibold italic">
               Tech Translated
             </span>
-            . I built this platform as a central hub for breaking down complex
-            hardware, software development, and everything in between.
+            . For years, I've loved sharing my excitement for the latest tech,
+            giving hardware advice, and talking about my current projects with
+            friends and family. I built this platform from the ground up to be
+            the central hub for all of it.
           </p>
 
           <p>
-            When I am not writing dispatches or pushing code, I am usually
-            tinkering with custom PC builds, exploring new tech ecosystems, or
-            optimizing workflows.
+            As a developer and tech enthusiast, I spend my time bridging the gap
+            between raw technical data and practical everyday use. Whether I am
+            optimizing a custom PC build, writing new code, or just geeking out
+            over new hardware, this is where I translate the complex stuff into
+            something approachable.
           </p>
 
           <p>
-            If you want to talk tech, hardware, or development, feel free to use
-            the{" "}
+            If you are looking for tech advice, curious about my latest build,
+            or just want to say hi, use the{" "}
             <a
               href="/contact"
               className="text-zinc-50 underline decoration-zinc-700 hover:decoration-zinc-400 transition-colors"
             >
               Transmission Channel
             </a>{" "}
-            to reach out directly to my inbox.
+            to drop a message straight to my inbox.
           </p>
         </div>
       </div>
