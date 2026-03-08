@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Tech Translated",
@@ -16,14 +17,49 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-zinc-950 text-zinc-50 antialiased min-h-screen flex flex-col">
         {/* Navigation Bar */}
-        <header className="border-b border-zinc-800 sticky top-0 bg-zinc-950/80 backdrop-blur-md z-50">
-          <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+        <header className="border-b border-zinc-800 pb-4 pt-6 mb-8">
+          <div className="max-w-5xl mx-auto px-6 flex items-center justify-between">
+            {/* The Custom Typography Logo */}
+            {/* The Custom Typography Logo */}
             <Link
               href="/"
-              className="text-xl font-bold tracking-tight hover:text-zinc-300 transition-colors"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
-              Tech Translated
+              {/* "Tech" */}
+              <div className="flex items-center">
+                <div className="relative w-10 h-10 z-10">
+                  <Image
+                    src="/logo-clear.png"
+                    alt="T"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                {/* The -ml-3 pulls the text to the left, overlapping the transparent space */}
+                <span className="text-3xl font-bold tracking-tight text-zinc-50 -ml-3 z-20">
+                  ech
+                </span>
+              </div>
+
+              {/* "Translated" */}
+              <div className="flex items-center">
+                <div className="relative w-10 h-10 z-10">
+                  <Image
+                    src="/logo-clear.png"
+                    alt="T"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+                <span className="text-3xl font-bold tracking-tight text-zinc-50 -ml-3 z-20">
+                  ranslated
+                </span>
+              </div>
             </Link>
+
+            {/* Your existing navigation links */}
             <nav className="flex gap-6 text-sm font-medium text-zinc-400">
               <Link href="/" className="hover:text-zinc-50 transition-colors">
                 Home
@@ -43,7 +79,6 @@ export default function RootLayout({
             </nav>
           </div>
         </header>
-
         {/* Main Content Area (Where your pages inject) */}
         <main className="flex-grow max-w-4xl mx-auto w-full px-6 py-12">
           {children}
