@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { auth } from "../../../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
@@ -55,9 +56,12 @@ export default function Dashboard() {
             Draft a new post and publish it directly to the Tech Translated
             feed.
           </p>
-          <button className="bg-zinc-50 text-zinc-950 font-bold px-6 py-2 rounded-lg hover:bg-zinc-200 transition-colors w-full">
+          <Link
+            href="/admin/editor"
+            className="block text-center bg-zinc-50 text-zinc-950 font-bold px-6 py-2 rounded-lg hover:bg-zinc-200 transition-colors w-full"
+          >
             Open Editor
-          </button>
+          </Link>
         </div>
 
         <div className="p-6 border border-zinc-800 rounded-xl bg-zinc-900/30">
