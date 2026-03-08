@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import Link from "next/link";
 
 export default function Home() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -51,9 +52,10 @@ export default function Home() {
           </p>
         ) : (
           posts.map((post) => (
-            <div
+            <Link
+              href={`/post/${post.id}`}
               key={post.id}
-              className="p-6 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors cursor-pointer"
+              className="block p-6 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors cursor-pointer"
             >
               <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
               {/* Format the Firebase timestamp into a clean, readable date */}
@@ -67,7 +69,7 @@ export default function Home() {
                   : "Just now"}
               </p>
               <p className="text-zinc-300 line-clamp-2">{post.summary}</p>
-            </div>
+            </Link>
           ))
         )}
       </div>
