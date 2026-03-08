@@ -71,9 +71,11 @@ export default function Post() {
       </p>
 
       {/* whitespace-pre-wrap ensures the line breaks from your text box are respected */}
-      <div className="prose prose-invert max-w-none text-zinc-300 leading-relaxed text-lg whitespace-pre-wrap">
-        {post.content}
-      </div>
+      {/* dangerouslySetInnerHTML is React's way of executing the HTML string your editor created */}
+      <div
+        className="prose prose-invert max-w-none text-zinc-300 leading-relaxed text-lg"
+        dangerouslySetInnerHTML={{ __html: post.content }}
+      />
     </article>
   );
 }

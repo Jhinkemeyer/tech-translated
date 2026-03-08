@@ -6,6 +6,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import RichTextEditor from "../../../components/RichTextEditor"; // <-- Here is your new tool!
 
 export default function Editor() {
   const [title, setTitle] = useState("");
@@ -14,7 +15,6 @@ export default function Editor() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
-  // Protect the room just like the dashboard
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) router.push("/admin");
@@ -27,15 +27,12 @@ export default function Editor() {
     setIsSubmitting(true);
 
     try {
-      // Save the dispatch to the Firestore database
       await addDoc(collection(db, "posts"), {
         title,
         summary,
         content,
-        createdAt: serverTimestamp(), // Firebase automatically stamps the exact time
+        createdAt: serverTimestamp(),
       });
-
-      // Send you back to the dashboard once it's saved
       router.push("/admin/dashboard");
     } catch (error) {
       console.error("Error publishing document: ", error);
@@ -89,14 +86,8 @@ export default function Editor() {
           <label className="block text-sm font-medium text-zinc-400 mb-2">
             Main Content
           </label>
-          <textarea
-            rows={12}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-zinc-50 focus:outline-none focus:border-zinc-600 transition-colors font-mono text-sm leading-relaxed"
-            placeholder="Start writing your dispatch..."
-            required
-          />
+          {/* We swapped the textarea for your custom component! */}
+          <RichTextEditor content={content} onChange={setContent} />
         </div>
 
         <div className="flex justify-end pt-4">
