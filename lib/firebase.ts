@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage"; // <-- New import!
 
 const firebaseConfig = {
   apiKey: "AIzaSyAYUeeDS3B7--K79GZ6CXyo72Zl2aVWChQ",
@@ -16,5 +17,6 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app); // <-- Turn on the filing cabinet!
 
-export { app, auth, db };
+export { app, auth, db, storage }; // <-- Export it so the editor can use it

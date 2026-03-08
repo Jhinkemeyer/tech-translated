@@ -2,7 +2,10 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useEffect } from "react";
+import Image from "@tiptap/extension-image";
+import { useState } from "react";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../lib/firebase";
 
 export default function RichTextEditor({
   content,
@@ -11,11 +14,19 @@ export default function RichTextEditor({
   content: string;
   onChange: (val: string) => void;
 }) {
+  const [isUploading, setIsUploading] = useState(false);
+
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Image.configure({
+        HTMLAttributes: {
+          class: "rounded-lg max-w-full h-auto my-6 border border-zinc-800", // Auto-formats your photos to look premium
+        },
+      }),
+    ],
     content: content,
-    immediatelyRender: false, // <-- This is the magic line that fixes the SSR error!
-    // This injects our Tailwind typography classes directly into the writing canvas
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class:
@@ -23,9 +34,34 @@ export default function RichTextEditor({
       },
     },
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML()); // Sends the formatted HTML back to our main page
+      onChange(editor.getHTML());
     },
   });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+
+    setIsUploading(true);
+    try {
+      // Create a unique folder path and filename in your cloud storage
+      const storageRef = ref(storage, `dispatches/${Date.now()}-${file.name}`);
+
+      // Upload the raw file
+      await uploadBytes(storageRef, file);
+
+      // Get the live public URL back from Firebase
+      const url = await getDownloadURL(storageRef);
+
+      // Inject that URL into your text editor as an image!
+      editor.chain().focus().setImage({ src: url }).run();
+    } catch (error) {
+      console.error("Error uploading image: ", error);
+      alert("Failed to upload photo. Check console.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (!editor) return null;
 
@@ -47,7 +83,7 @@ export default function RichTextEditor({
         >
           Italic
         </button>
-        <div className="w-px h-5 bg-zinc-700 mx-1"></div> {/* Divider */}
+        <div className="w-px h-5 bg-zinc-700 mx-1"></div>
         <button
           type="button"
           onClick={() =>
@@ -64,6 +100,22 @@ export default function RichTextEditor({
         >
           Bullet List
         </button>
+
+        <div className="w-px h-5 bg-zinc-700 mx-1"></div>
+
+        {/* The New Image Upload Button */}
+        <label
+          className={`cursor-pointer px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isUploading ? "text-emerald-400 animate-pulse" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`}
+        >
+          {isUploading ? "Uploading..." : "Add Photo"}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+            disabled={isUploading}
+          />
+        </label>
       </div>
 
       {/* The Writing Canvas */}
