@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import Link from "next/link";
+import SubscribeBox from "../components/SubscribeBox";
 
 export default function Home() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -73,6 +74,8 @@ export default function Home() {
           ))
         )}
       </div>
+      {/* The new Subscribe Box goes right here! */}
+      <SubscribeBox />
     </div>
   );
 }

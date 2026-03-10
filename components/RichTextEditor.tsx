@@ -6,6 +6,7 @@ import Image from "@tiptap/extension-image";
 import { useState } from "react";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
+import Link from "@tiptap/extension-link";
 
 export default function RichTextEditor({
   content,
@@ -19,9 +20,18 @@ export default function RichTextEditor({
   const editor = useEditor({
     extensions: [
       StarterKit,
+      // The Link extension configuration
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class:
+            "text-emerald-400 underline hover:text-emerald-300 transition-colors cursor-pointer",
+          target: "_blank", // Ensures links open in a new tab!
+        },
+      }),
       Image.configure({
         HTMLAttributes: {
-          class: "rounded-lg max-w-full h-auto my-6 border border-zinc-800", // Auto-formats your photos to look premium
+          class: "rounded-lg max-w-full h-auto my-6 border border-zinc-800", // Auto-formats your photos
         },
       }),
     ],
@@ -72,14 +82,22 @@ export default function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editor.isActive("bold") ? "bg-zinc-200 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            editor.isActive("bold")
+              ? "bg-zinc-200 text-zinc-950"
+              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          }`}
         >
           Bold
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editor.isActive("italic") ? "bg-zinc-200 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            editor.isActive("italic")
+              ? "bg-zinc-200 text-zinc-950"
+              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          }`}
         >
           Italic
         </button>
@@ -89,23 +107,72 @@ export default function RichTextEditor({
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
           }
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editor.isActive("heading", { level: 2 }) ? "bg-zinc-200 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            editor.isActive("heading", { level: 2 })
+              ? "bg-zinc-200 text-zinc-950"
+              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          }`}
         >
           Heading
         </button>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${editor.isActive("bulletList") ? "bg-zinc-200 text-zinc-950" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            editor.isActive("bulletList")
+              ? "bg-zinc-200 text-zinc-950"
+              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          }`}
         >
           Bullet List
         </button>
 
         <div className="w-px h-5 bg-zinc-700 mx-1"></div>
 
-        {/* The New Image Upload Button */}
+        {/* The New Link Button */}
+        <button
+          type="button"
+          onClick={() => {
+            const previousUrl = editor.getAttributes("link").href;
+            const url = window.prompt("Enter the URL:", previousUrl);
+
+            // If they hit cancel
+            if (url === null) {
+              return;
+            }
+
+            // If they submit an empty string, it removes the link
+            if (url === "") {
+              editor.chain().focus().extendMarkRange("link").unsetLink().run();
+              return;
+            }
+
+            // Otherwise, set the link!
+            editor
+              .chain()
+              .focus()
+              .extendMarkRange("link")
+              .setLink({ href: url })
+              .run();
+          }}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            editor.isActive("link")
+              ? "bg-emerald-500/20 text-emerald-400"
+              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          }`}
+        >
+          Add Link
+        </button>
+
+        <div className="w-px h-5 bg-zinc-700 mx-1"></div>
+
+        {/* The Image Upload Button */}
         <label
-          className={`cursor-pointer px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isUploading ? "text-emerald-400 animate-pulse" : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"}`}
+          className={`cursor-pointer px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            isUploading
+              ? "text-emerald-400 animate-pulse"
+              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+          }`}
         >
           {isUploading ? "Uploading..." : "Add Photo"}
           <input

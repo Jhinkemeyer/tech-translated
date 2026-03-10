@@ -3,10 +3,15 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+} from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import RichTextEditor from "../../../components/RichTextEditor"; // <-- Here is your new tool!
+import RichTextEditor from "../../../components/RichTextEditor";
 
 export default function Editor() {
   const [title, setTitle] = useState("");
@@ -27,16 +32,44 @@ export default function Editor() {
     setIsSubmitting(true);
 
     try {
-      await addDoc(collection(db, "posts"), {
+      // 1. Save to Firebase
+      const docRef = await addDoc(collection(db, "posts"), {
         title,
         summary,
         content,
         createdAt: serverTimestamp(),
       });
+
+      // 2. Fetch the subscribers directly from the secure frontend
+      const querySnapshot = await getDocs(collection(db, "subscribers"));
+      const emails = querySnapshot.docs.map((doc) => doc.data().email);
+
+      // 3. Trigger the email transmission, passing the emails along!
+      const response = await fetch("/api/notify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          summary,
+          postId: docRef.id,
+          emails, // Added the emails array here!
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Transmission Error Data:", errorData);
+        alert(`Article saved, but emails failed: ${errorData.error}`);
+      }
+
+      // 4. Send them back to the dashboard
       router.push("/admin/dashboard");
     } catch (error) {
       console.error("Error publishing document: ", error);
       alert("Failed to publish. Check console for details.");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -86,7 +119,6 @@ export default function Editor() {
           <label className="block text-sm font-medium text-zinc-400 mb-2">
             Main Content
           </label>
-          {/* We swapped the textarea for your custom component! */}
           <RichTextEditor content={content} onChange={setContent} />
         </div>
 
