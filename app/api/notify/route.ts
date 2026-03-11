@@ -12,10 +12,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "No subscribers found." });
     }
 
-    const postUrl = `https://tech-translated.vercel.app/post/${postId}`;
+    const postUrl = `https://techtranslated.dev/post/${postId}`;
 
     const { data, error } = await resend.emails.send({
-      from: "Tech Translated <onboarding@resend.dev>",
+      from: "Tech Translated <joshua@techtranslated.dev>",
       to: emails,
       subject: `New Dispatch: ${title}`,
       html: `
