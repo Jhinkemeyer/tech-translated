@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { auth, db } from "../../../lib/firebase";
+// NEW: Added 'storage' to your firebase imports
+import { auth, db, storage } from "../../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
@@ -9,6 +10,8 @@ import {
   serverTimestamp,
   getDocs,
 } from "firebase/firestore";
+// NEW: Added Firebase storage imports for uploading
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import RichTextEditor from "../../../components/RichTextEditor";
@@ -17,6 +20,9 @@ export default function Editor() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
+  // NEW: State for the cover image
+  const [coverImage, setCoverImage] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
@@ -26,6 +32,29 @@ export default function Editor() {
     });
     return () => unsubscribe();
   }, [router]);
+
+  // NEW: Function to handle the image upload to Firebase Storage
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    try {
+      // Create a unique file name
+      const storageRef = ref(storage, `covers/${Date.now()}_${file.name}`);
+      // Upload the file
+      await uploadBytes(storageRef, file);
+      // Get the live URL
+      const downloadURL = await getDownloadURL(storageRef);
+      // Save it to state
+      setCoverImage(downloadURL);
+    } catch (error) {
+      console.error("Image upload failed", error);
+      alert("Failed to upload cover image.");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +66,7 @@ export default function Editor() {
         title,
         summary,
         content,
+        coverImage, // NEW: Saves the image URL to the database!
         createdAt: serverTimestamp(),
       });
 
@@ -54,7 +84,7 @@ export default function Editor() {
           title,
           summary,
           postId: docRef.id,
-          emails, // Added the emails array here!
+          emails,
         }),
       });
 
@@ -115,6 +145,45 @@ export default function Editor() {
           />
         </div>
 
+        {/* NEW: Cover Image Upload UI */}
+        <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg">
+          <label className="block text-sm font-medium text-zinc-400 mb-2">
+            Cover Image (Desktop Feed Thumbnail)
+          </label>
+          <div className="flex items-center gap-4">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={isUploadingImage}
+              className="text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700 transition-colors cursor-pointer"
+            />
+            {isUploadingImage && (
+              <span className="text-emerald-500 text-sm animate-pulse">
+                Uploading...
+              </span>
+            )}
+          </div>
+
+          {/* Image Preview Window */}
+          {coverImage && (
+            <div className="mt-4 relative h-48 w-full sm:w-80 rounded-lg overflow-hidden border border-zinc-700">
+              <img
+                src={coverImage}
+                alt="Cover Preview"
+                className="object-cover w-full h-full"
+              />
+              <button
+                type="button"
+                onClick={() => setCoverImage("")}
+                className="absolute top-2 right-2 bg-red-500/90 text-white px-3 py-1 rounded text-xs font-bold hover:bg-red-500 transition-colors shadow-lg"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-zinc-400 mb-2">
             Main Content
@@ -122,7 +191,7 @@ export default function Editor() {
           <RichTextEditor content={content} onChange={setContent} />
         </div>
 
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-4 pb-12">
           <button
             type="submit"
             disabled={isSubmitting}

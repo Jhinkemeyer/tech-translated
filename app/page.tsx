@@ -56,20 +56,36 @@ export default function Home() {
             <Link
               href={`/post/${post.id}`}
               key={post.id}
-              className="block p-6 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors cursor-pointer"
+              // NEW: Added 'flex', 'justify-between', and 'group' to the main card
+              className="flex items-center justify-between gap-6 p-6 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors cursor-pointer group"
             >
-              <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-              {/* Format the Firebase timestamp into a clean, readable date */}
-              <p className="text-zinc-400 text-sm mb-4">
-                {post.createdAt?.toDate
-                  ? post.createdAt.toDate().toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
-                  : "Just now"}
-              </p>
-              <p className="text-zinc-300 line-clamp-2">{post.summary}</p>
+              {/* NEW: Wrapped the text in a flex-1 container so it takes up the left side */}
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold mb-2 group-hover:text-zinc-300 transition-colors">
+                  {post.title}
+                </h2>
+                <p className="text-zinc-400 text-sm mb-4">
+                  {post.createdAt?.toDate
+                    ? post.createdAt.toDate().toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "Just now"}
+                </p>
+                <p className="text-zinc-300 line-clamp-2">{post.summary}</p>
+              </div>
+
+              {/* NEW: The Thumbnail Container! Hidden on mobile (hidden), shown on desktop (sm:block) */}
+              {post.coverImage && (
+                <div className="hidden sm:block w-40 h-28 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-800">
+                  <img
+                    src={post.coverImage}
+                    alt={post.title}
+                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              )}
             </Link>
           ))
         )}
