@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import Image from "next/image";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "Tech Translated",
@@ -99,6 +100,7 @@ export default function RootLayout({
             </Link>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
