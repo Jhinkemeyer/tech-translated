@@ -14,6 +14,8 @@ export default function EditPost() {
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState("");
+  // NEW: State to hold our comma-separated tags
+  const [tags, setTags] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +29,6 @@ export default function EditPost() {
       if (!user) {
         router.push("/admin");
       } else {
-        // If they are logged in, go fetch the existing post data!
         fetchPostData();
       }
     });
@@ -45,6 +46,10 @@ export default function EditPost() {
         setSummary(data.summary || "");
         setContent(data.content || "");
         setCoverImage(data.coverImage || "");
+        // NEW: If tags exist in the database (as an array), convert them back into a comma-separated string for the text box
+        if (data.tags && Array.isArray(data.tags)) {
+          setTags(data.tags.join(", "));
+        }
       } else {
         alert("Dispatch not found!");
         router.push("/admin/dashboard");
@@ -81,12 +86,17 @@ export default function EditPost() {
     try {
       const docRef = doc(db, "posts", postId);
 
-      // SURGICAL UPDATE: Notice we use updateDoc instead of addDoc!
-      // We only pass it the fields we want to change. createdAt is completely ignored,
-      // meaning it keeps its exact original date and spot on the feed.
+      // NEW: Convert the comma-separated string back into a clean array before saving
+      const tagsArray = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag !== "");
+
+      // SURGICAL UPDATE: Now passing the tagsArray
       await updateDoc(docRef, {
         title,
         summary,
+        tags: tagsArray,
         content,
         coverImage,
       });
@@ -146,6 +156,20 @@ export default function EditPost() {
             onChange={(e) => setSummary(e.target.value)}
             className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-zinc-50 focus:outline-none focus:border-zinc-600 transition-colors"
             required
+          />
+        </div>
+
+        {/* NEW: Tags Input Field for the Editor */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-400 mb-2">
+            Categories & Tags
+          </label>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-zinc-50 focus:outline-none focus:border-zinc-600 transition-colors text-sm"
+            placeholder="e.g. Linux, Hardware, Streaming (separate with commas)"
           />
         </div>
 

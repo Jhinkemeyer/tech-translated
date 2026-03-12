@@ -52,23 +52,40 @@ export default function Post() {
         href="/"
         className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm font-medium mb-12 inline-block"
       >
-        ← Back to Feed
+        &larr; Back to Feed
       </Link>
 
       <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
         {post.title}
       </h1>
 
-      <p className="text-zinc-400 text-sm mb-12 border-b border-zinc-800 pb-8">
-        Published on{" "}
-        {post.createdAt?.toDate
-          ? post.createdAt.toDate().toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          : "Just now"}
-      </p>
+      {/* NEW: Wrapped the date and tags in a border-b container */}
+      <div className="mb-12 border-b border-zinc-800 pb-8">
+        <p className="text-zinc-400 text-sm">
+          Published on{" "}
+          {post.createdAt?.toDate
+            ? post.createdAt.toDate().toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "Just now"}
+        </p>
+
+        {/* NEW: The Tag Pills Rendering Block for the Article Page */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {post.tags.map((tag: string, index: number) => (
+              <span
+                key={index}
+                className="px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* whitespace-pre-wrap ensures the line breaks from your text box are respected */}
       {/* dangerouslySetInnerHTML is React's way of executing the HTML string your editor created */}

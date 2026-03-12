@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// NEW: Added 'storage' to your firebase imports
 import { auth, db, storage } from "../../../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import {
@@ -10,7 +9,6 @@ import {
   serverTimestamp,
   getDocs,
 } from "firebase/firestore";
-// NEW: Added Firebase storage imports for uploading
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -20,8 +18,9 @@ export default function Editor() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
-  // NEW: State for the cover image
   const [coverImage, setCoverImage] = useState("");
+  // NEW: State to hold our comma-separated tags
+  const [tags, setTags] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
@@ -33,20 +32,15 @@ export default function Editor() {
     return () => unsubscribe();
   }, [router]);
 
-  // NEW: Function to handle the image upload to Firebase Storage
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploadingImage(true);
     try {
-      // Create a unique file name
       const storageRef = ref(storage, `covers/${Date.now()}_${file.name}`);
-      // Upload the file
       await uploadBytes(storageRef, file);
-      // Get the live URL
       const downloadURL = await getDownloadURL(storageRef);
-      // Save it to state
       setCoverImage(downloadURL);
     } catch (error) {
       console.error("Image upload failed", error);
@@ -61,12 +55,20 @@ export default function Editor() {
     setIsSubmitting(true);
 
     try {
+      // NEW: Convert the comma-separated string into a clean array
+      // Example: "Linux, Hardware , Networking" becomes ["Linux", "Hardware", "Networking"]
+      const tagsArray = tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag !== "");
+
       // 1. Save to Firebase
       const docRef = await addDoc(collection(db, "posts"), {
         title,
         summary,
+        tags: tagsArray, // NEW: Saves the array to the database
         content,
-        coverImage, // NEW: Saves the image URL to the database!
+        coverImage,
         createdAt: serverTimestamp(),
       });
 
@@ -145,7 +147,20 @@ export default function Editor() {
           />
         </div>
 
-        {/* NEW: Cover Image Upload UI */}
+        {/* NEW: Tags Input Field */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-400 mb-2">
+            Categories & Tags
+          </label>
+          <input
+            type="text"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-zinc-50 focus:outline-none focus:border-zinc-600 transition-colors text-sm"
+            placeholder="e.g. Linux, Hardware, Streaming (separate with commas)"
+          />
+        </div>
+
         <div className="bg-zinc-900/50 border border-zinc-800 p-4 rounded-lg">
           <label className="block text-sm font-medium text-zinc-400 mb-2">
             Cover Image (Desktop Feed Thumbnail)
@@ -165,7 +180,6 @@ export default function Editor() {
             )}
           </div>
 
-          {/* Image Preview Window */}
           {coverImage && (
             <div className="mt-4 relative h-48 w-full sm:w-80 rounded-lg overflow-hidden border border-zinc-700">
               <img

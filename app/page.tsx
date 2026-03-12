@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// NEW: Added 'limit' to the firestore imports
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import Link from "next/link";
@@ -14,7 +13,6 @@ export default function Home() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        // NEW: Added limit(5) to the end of the query!
         const q = query(
           collection(db, "posts"),
           orderBy("createdAt", "desc"),
@@ -57,34 +55,49 @@ export default function Home() {
             No dispatches found. The feed is quiet.
           </p>
         ) : (
-          // NEW: Added 'index' to the map function so we can count which post we are on
           posts.map((post, index) => (
             <Link
               href={`/post/${post.id}`}
               key={post.id}
-              // NEW: The CSS Magic! If the index is 3 or 4 (the 4th and 5th posts), it hides on mobile and shows as flex on desktop.
               className={`items-center justify-between gap-6 p-6 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors cursor-pointer group ${
                 index >= 3 ? "hidden sm:flex" : "flex"
               }`}
             >
-              {/* NEW: Wrapped the text in a flex-1 container so it takes up the left side */}
               <div className="flex-1">
                 <h2 className="text-xl font-semibold mb-2 group-hover:text-zinc-300 transition-colors">
                   {post.title}
                 </h2>
-                <p className="text-zinc-400 text-sm mb-4">
-                  {post.createdAt?.toDate
-                    ? post.createdAt.toDate().toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "Just now"}
-                </p>
+
+                {/* NEW: Wrapped Date and Tags in a flex row so they sit nicely together */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <p className="text-zinc-500 text-sm">
+                    {post.createdAt?.toDate
+                      ? post.createdAt.toDate().toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                      : "Just now"}
+                  </p>
+
+                  {/* NEW: The Tag Pills Rendering Block */}
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {post.tags.map((tag: string, tagIndex: number) => (
+                        <span
+                          key={tagIndex}
+                          className="px-2.5 py-0.5 rounded-md text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <p className="text-zinc-300 line-clamp-2">{post.summary}</p>
               </div>
 
-              {/* NEW: The Thumbnail Container! Hidden on mobile (hidden), shown on desktop (sm:block) */}
               {post.coverImage && (
                 <div className="hidden sm:block w-40 h-28 flex-shrink-0 overflow-hidden rounded-lg border border-zinc-800">
                   <img
@@ -99,7 +112,6 @@ export default function Home() {
         )}
       </div>
 
-      {/* NEW: A link to the future Archive page so people can keep reading */}
       {!loading && posts.length > 0 && (
         <div className="flex justify-center pt-4 pb-8">
           <Link
@@ -111,7 +123,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* The new Subscribe Box goes right here! */}
       <SubscribeBox />
     </div>
   );
