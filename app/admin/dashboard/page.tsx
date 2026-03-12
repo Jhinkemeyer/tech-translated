@@ -101,7 +101,7 @@ export default function Dashboard() {
             </p>
             <p>
               Authenticated as:{" "}
-              <span className="text-zinc-50">{user.email}</span>
+              <span className="text-zinc-50">{user?.email}</span>
             </p>
           </div>
         </div>
@@ -131,14 +131,23 @@ export default function Dashboard() {
                       : "Just now"}
                   </p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3 sm:flex-nowrap">
                   <Link
                     href={`/post/${post.id}`}
                     target="_blank"
-                    className="px-4 py-2 rounded-md text-sm font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 transition-colors"
+                    className="px-4 py-2 rounded-md text-sm font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 transition-colors text-center"
                   >
                     View
                   </Link>
+
+                  {/* NEW: The Edit Button */}
+                  <Link
+                    href={`/admin/edit/${post.id}`}
+                    className="px-4 py-2 rounded-md text-sm font-medium text-emerald-400 bg-emerald-950/30 border border-emerald-900/50 hover:bg-emerald-900/50 hover:text-emerald-300 transition-colors text-center"
+                  >
+                    Edit
+                  </Link>
+
                   <button
                     onClick={() => handleDelete(post.id)}
                     className="px-4 py-2 rounded-md text-sm font-medium text-red-400 bg-red-950/30 border border-red-900/50 hover:bg-red-900/50 hover:text-red-300 transition-colors"
