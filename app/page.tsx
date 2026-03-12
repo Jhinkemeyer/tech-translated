@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+// NEW: Added 'limit' to the firestore imports
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import Link from "next/link";
 import SubscribeBox from "../components/SubscribeBox";
@@ -13,8 +14,12 @@ export default function Home() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        // Query the database for the "posts" collection, ordered by newest first
-        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+        // NEW: Added limit(5) to the end of the query!
+        const q = query(
+          collection(db, "posts"),
+          orderBy("createdAt", "desc"),
+          limit(5),
+        );
         const querySnapshot = await getDocs(q);
 
         const fetchedPosts = querySnapshot.docs.map((doc) => ({
@@ -52,12 +57,15 @@ export default function Home() {
             No dispatches found. The feed is quiet.
           </p>
         ) : (
-          posts.map((post) => (
+          // NEW: Added 'index' to the map function so we can count which post we are on
+          posts.map((post, index) => (
             <Link
               href={`/post/${post.id}`}
               key={post.id}
-              // NEW: Added 'flex', 'justify-between', and 'group' to the main card
-              className="flex items-center justify-between gap-6 p-6 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors cursor-pointer group"
+              // NEW: The CSS Magic! If the index is 3 or 4 (the 4th and 5th posts), it hides on mobile and shows as flex on desktop.
+              className={`items-center justify-between gap-6 p-6 rounded-xl border border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors cursor-pointer group ${
+                index >= 3 ? "hidden sm:flex" : "flex"
+              }`}
             >
               {/* NEW: Wrapped the text in a flex-1 container so it takes up the left side */}
               <div className="flex-1">
@@ -90,6 +98,19 @@ export default function Home() {
           ))
         )}
       </div>
+
+      {/* NEW: A link to the future Archive page so people can keep reading */}
+      {!loading && posts.length > 0 && (
+        <div className="flex justify-center pt-4 pb-8">
+          <Link
+            href="/archive"
+            className="text-emerald-500 hover:text-emerald-400 font-semibold transition-colors"
+          >
+            View All Transmissions &rarr;
+          </Link>
+        </div>
+      )}
+
       {/* The new Subscribe Box goes right here! */}
       <SubscribeBox />
     </div>

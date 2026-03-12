@@ -66,6 +66,12 @@ export default function RootLayout({
                 Home
               </Link>
               <Link
+                href="/archive"
+                className="hover:text-zinc-50 transition-colors"
+              >
+                Archive
+              </Link>
+              <Link
                 href="/bio"
                 className="hover:text-zinc-50 transition-colors"
               >
