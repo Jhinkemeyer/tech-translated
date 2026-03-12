@@ -6,7 +6,8 @@ import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   title: "Tech Translated",
-  description: "Signal. No noise. A tech blog by Joshua Hinkemeyer.",
+  description:
+    "Complex tech, translated. Practical advice and insights for your digital life.",
 };
 
 export default function RootLayout({
@@ -95,10 +96,7 @@ export default function RootLayout({
         {/* Footer with Hidden Admin Link */}
         <footer className="border-t border-zinc-900 py-8 mt-auto">
           <div className="max-w-4xl mx-auto px-6 flex items-center justify-between text-xs text-zinc-600">
-            <p>
-              © {new Date().getFullYear()} Joshua Hinkemeyer. All rights
-              reserved.
-            </p>
+            <p>© {new Date().getFullYear()} Joshua H. All rights reserved.</p>
             <Link
               href="/admin"
               className="hover:text-zinc-400 transition-colors"
