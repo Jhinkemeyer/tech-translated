@@ -38,7 +38,7 @@ export default function Home() {
       <section className="mb-12 border-b border-zinc-800 pb-8">
         <h1 className="text-4xl font-bold mb-4">Latest Dispatches</h1>
         <p className="text-zinc-400 text-lg">
-          Breaking down the coolest hardware, PC builds, and software.
+          Signal, no noise. Making everyday technology work for you.
         </p>
       </section>
 
