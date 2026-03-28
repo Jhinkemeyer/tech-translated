@@ -1,47 +1,46 @@
 import { NextResponse } from "next/server";
-import { adminDb, adminMessaging } from "../../../lib/firebaseAdmin";
+import { getAdminApp } from "../../../lib/firebaseAdmin";
+
+// This tells Next.js NOT to try and prerender this route during the build
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
+    const adminApp = getAdminApp();
+
+    // If the app didn't initialize (like during a build), just return early
+    if (!adminApp) {
+      return NextResponse.json(
+        { error: "Admin SDK not initialized" },
+        { status: 500 },
+      );
+    }
+
+    const { adminDb, adminMessaging } = adminApp;
     const body = await request.json();
     const { title, summary, url } = body;
 
-    // 1. Grab every single device token from your pushSubscribers collection
     const snapshot = await adminDb.collection("pushSubscribers").get();
     const tokens = snapshot.docs.map((doc) => doc.data().token);
 
     if (tokens.length === 0) {
-      return NextResponse.json({ message: "No active subscribers to notify." });
+      return NextResponse.json({ message: "No active subscribers." });
     }
 
-    // 2. Build the notification payload
     const payload = {
-      notification: {
-        title: title,
-        body: summary,
-      },
-      webpush: {
-        fcmOptions: {
-          // When they click the notification, it opens your new article!
-          link: url,
-        },
-      },
+      notification: { title, body: summary },
+      webpush: { fcmOptions: { link: url } },
       tokens: tokens,
     };
 
-    // 3. Blast it out to all devices simultaneously
     const response = await adminMessaging.sendEachForMulticast(payload);
 
     return NextResponse.json({
       success: true,
       sentCount: response.successCount,
-      failedCount: response.failureCount,
     });
   } catch (error) {
-    console.error("Error sending transmission:", error);
-    return NextResponse.json(
-      { error: "Failed to broadcast signal" },
-      { status: 500 },
-    );
+    console.error("Push error:", error);
+    return NextResponse.json({ error: "Broadcast failed" }, { status: 500 });
   }
 }
