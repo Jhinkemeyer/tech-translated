@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage"; // <-- New import!
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAYUeeDS3B7--K79GZ6CXyo72Zl2aVWChQ",
@@ -13,10 +13,28 @@ const firebaseConfig = {
   measurementId: "G-M2E59F6JQG",
 };
 
-// Initialize Firebase (this prevents Next.js from trying to initialize it twice during local reloads)
+// Initialize Firebase (prevents Next.js from initializing twice)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app); // <-- Turn on the filing cabinet!
+const storage = getStorage(app);
 
-export { app, auth, db, storage }; // <-- Export it so the editor can use it
+// NEW: A bulletproof helper function to safely load messaging in Next.js
+export const getMessagingInstance = async () => {
+  if (typeof window === "undefined") return null; // Abort if on the server
+
+  try {
+    const { getMessaging, isSupported } = await import("firebase/messaging");
+    const supported = await isSupported();
+
+    if (supported) {
+      return getMessaging(app);
+    }
+    return null;
+  } catch (error) {
+    console.error("Firebase messaging not supported:", error);
+    return null;
+  }
+};
+
+export { app, auth, db, storage };

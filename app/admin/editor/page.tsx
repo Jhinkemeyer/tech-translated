@@ -19,10 +19,13 @@ export default function Editor() {
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
   const [coverImage, setCoverImage] = useState("");
-  // NEW: State to hold our comma-separated tags
   const [tags, setTags] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // NEW: State for the Push Notification Toggle
+  const [sendPush, setSendPush] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -55,8 +58,6 @@ export default function Editor() {
     setIsSubmitting(true);
 
     try {
-      // NEW: Convert the comma-separated string into a clean array
-      // Example: "Linux, Hardware , Networking" becomes ["Linux", "Hardware", "Networking"]
       const tagsArray = tags
         .split(",")
         .map((tag) => tag.trim())
@@ -66,7 +67,7 @@ export default function Editor() {
       const docRef = await addDoc(collection(db, "posts"), {
         title,
         summary,
-        tags: tagsArray, // NEW: Saves the array to the database
+        tags: tagsArray,
         content,
         coverImage,
         createdAt: serverTimestamp(),
@@ -76,8 +77,8 @@ export default function Editor() {
       const querySnapshot = await getDocs(collection(db, "subscribers"));
       const emails = querySnapshot.docs.map((doc) => doc.data().email);
 
-      // 3. Trigger the email transmission, passing the emails along!
-      const response = await fetch("/api/notify", {
+      // 3. Trigger the email transmission
+      const emailResponse = await fetch("/api/notify", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,13 +91,36 @@ export default function Editor() {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Transmission Error Data:", errorData);
+      if (!emailResponse.ok) {
+        const errorData = await emailResponse.json();
+        console.error("Email Transmission Error Data:", errorData);
         alert(`Article saved, but emails failed: ${errorData.error}`);
       }
 
-      // 4. Send them back to the dashboard
+      // NEW: 4. Trigger the Push Notification if the toggle is checked
+      if (sendPush) {
+        // Automatically grabs localhost:3000 for local testing, or your real domain in production
+        const postUrl = `${window.location.origin}/post/${docRef.id}`;
+
+        const pushResponse = await fetch("/api/push", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            summary,
+            url: postUrl,
+          }),
+        });
+
+        if (!pushResponse.ok) {
+          console.error("Push Notification Failed");
+          alert("Article saved, but push notifications failed to send.");
+        }
+      }
+
+      // 5. Send them back to the dashboard
       router.push("/admin/dashboard");
     } catch (error) {
       console.error("Error publishing document: ", error);
@@ -147,7 +171,6 @@ export default function Editor() {
           />
         </div>
 
-        {/* NEW: Tags Input Field */}
         <div>
           <label className="block text-sm font-medium text-zinc-400 mb-2">
             Categories & Tags
@@ -205,11 +228,28 @@ export default function Editor() {
           <RichTextEditor content={content} onChange={setContent} />
         </div>
 
-        <div className="flex justify-end pt-4 pb-12">
+        {/* NEW: Updated Publish Bar with Toggle */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 pb-12 border-t border-zinc-800 mt-8">
+          <div className="flex items-center gap-3 bg-zinc-900/50 px-5 py-3 rounded-lg border border-zinc-800 w-full sm:w-auto">
+            <input
+              type="checkbox"
+              id="pushToggle"
+              checked={sendPush}
+              onChange={(e) => setSendPush(e.target.checked)}
+              className="w-5 h-5 accent-emerald-500 cursor-pointer bg-zinc-900 border-zinc-700 rounded"
+            />
+            <label
+              htmlFor="pushToggle"
+              className="text-sm font-bold text-zinc-300 cursor-pointer select-none"
+            >
+              Blast Browser Push Notification
+            </label>
+          </div>
+
           <button
             type="submit"
             disabled={isSubmitting}
-            className="bg-emerald-500 text-emerald-950 font-bold px-8 py-3 rounded-lg hover:bg-emerald-400 transition-colors disabled:opacity-50"
+            className="w-full sm:w-auto bg-emerald-500 text-emerald-950 font-bold px-8 py-3 rounded-lg hover:bg-emerald-400 transition-colors disabled:opacity-50"
           >
             {isSubmitting ? "Publishing..." : "Publish Dispatch"}
           </button>
