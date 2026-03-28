@@ -6,9 +6,12 @@ import { Metadata } from "next";
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  // NEW: params is now explicitly typed as a Promise in Next.js 15
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const id = params.id;
+  // NEW: We await the params before extracting the ID
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
 
   try {
     const docRef = doc(db, "posts", id);
